@@ -624,28 +624,7 @@ local FeatureLoadout; FeatureLoadout = {
             ["InstanceType"] = "BoolValue",
             ["DefaultInstanceValue"] = false,
             ["ExtraData"] = {},
-            ["ScriptFunction"] = function(self, Value)
-                local BlockAbilityUI = MainUI and MainUI:FindFirstChild("AbilityContainer") and MainUI:FindFirstChild("AbilityContainer"):FindFirstChild("Block")
-                local AutoImage = BlockAbilityUI and BlockAbilityUI:FindFirstChild("AutoImage")
-                if Value then
-                    if not AutoImage and BlockAbilityUI then
-                        AutoImage = Instance.new("ImageLabel")
-                        AutoImage.Name = "AutoImage"
-                        AutoImage.Interactable = false
-                        AutoImage.Parent = BlockAbilityUI
-                        AutoImage.Image = "rbxassetid://114159864966636"
-                        AutoImage.BackgroundTransparency = 1
-                        AutoImage.Size = UDim2.fromScale(0.8,0.8)
-                        AutoImage.Position = UDim2.fromScale(0.5,0)
-                        AutoImage.AnchorPoint = Vector2.new(0.5,0.4)
-                    elseif not BlockAbilityUI then
-                        return
-                    end
-                    AutoImage.Visible = true
-                elseif AutoImage then
-                    AutoImage.Visible = false
-                end
-            end
+            ["ScriptFunction"] = function(self, Value) end
         }
     },
 
@@ -2973,7 +2952,7 @@ local function HandleKiller(Killer)
                         Part.Anchored = true
                         Part.CastShadow = false
                         Part.Material = Enum.Material.ForceField
-                        Part.Transparency = ShowHitboxesSetting.Value and 0.1 or 1
+                        Part.Transparency = 1
                         Part.Parent = Hitboxes
                         Debris:AddItem(Part,0.4)
                         local Hitbox = workspace:GetPartsInPart(Part,SelfParams)
