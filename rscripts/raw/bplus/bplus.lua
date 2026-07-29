@@ -74,6 +74,9 @@ local OverriddenAnimations,AllAnimations,Values = {},{["Default Roblox"] = {["Id
 local PlaySound,MainModule,HandlePrivacySettings,Check,ModulesOptions,RichTextGradientColor,IsHitboxNotNear,GoUnder,HandleAllowJumping,HandleNoliNPC,ChangeTrackWithOverride,LastTrack,NoliConfig,TableValueFind,ColoredPrint,Handle007n7NPC,GetValue,UtilModule,SprintEvent,LastAnimOriginalUsed,UpdateAnim,CanPlayOverrideAnim,CurrentQTEAzure,TeleportSound,ReturnData,DefaultData,ChangeData
 local ColorPresets = {["White"] = Color3.fromRGB(255,255,255),["Teal"] = Color3.fromRGB(3,252,157),["Green"] = Color3.fromRGB(0,255,0),["Purple"] = Color3.fromRGB(158, 0, 179),["Red"] = Color3.fromRGB(255,0,0),["Blue"] = Color3.fromRGB(0,0,255),["Cyan"] = Color3.fromRGB(0,255,255),["Gold"] = Color3.fromRGB(255,215,0),["Orange"] = Color3.fromRGB(255,165,0)}
 local IgnoreKeybinds = {"W", "A", "S", "D"}
+local DrawingESPObjects = {}
+local DrawingUpdateConnection = nil
+local CleanupAllDrawingESP -- forward declaration
 local GameVersionForScript = "2026-07-25"
 local FeatureLoadout; FeatureLoadout = {
     ["EnviromentFunctions"] = {
@@ -620,6 +623,22 @@ local FeatureLoadout; FeatureLoadout = {
                     AutoImage.Visible = true
                 elseif AutoImage then
                     AutoImage.Visible = false
+                end
+            end
+        },
+        ["SMode"] = {
+            ["DisplayDescription"] = "Hides ESP visuals from OBS Game Capture by using the Drawing API overlay",
+            ["DisplayTitle"] = "S Mode",
+            ["LayoutOrder"] = 15,
+            ["Savable"] = true,
+            ["InstanceType"] = "BoolValue",
+            ["DefaultInstanceValue"] = false,
+            ["ExtraData"] = {
+                ["Requirement"] = "Computer"
+            },
+            ["ScriptFunction"] = function(self, Value)
+                if not Value then
+                    CleanupAllDrawingESP()
                 end
             end
         }
@@ -1650,6 +1669,166 @@ local function CreateDynamicHighlight(Enabled,ItemInstance,TargetRoot,Settings)
         end
     elseif Highlight[1] then
         Highlight[1]:Destroy()
+    end
+end
+
+-- Drawing ESP System (S Mode - renders on OS overlay, invisible to OBS Game Capture) --
+
+local function CleanupDrawingESPItem(ItemInstance)
+    local obj = DrawingESPObjects[ItemInstance]
+    if obj then
+        if obj.Box then pcall(function() obj.Box:Remove() end) end
+        if obj.Text then pcall(function() obj.Text:Remove() end) end
+        DrawingESPObjects[ItemInstance] = nil
+    end
+end
+
+function CleanupAllDrawingESP()
+    for inst, obj in pairs(DrawingESPObjects) do
+        if obj.Box then pcall(function() obj.Box:Remove() end) end
+        if obj.Text then pcall(function() obj.Text:Remove() end) end
+    end
+    table.clear(DrawingESPObjects)
+    if DrawingUpdateConnection then
+        DrawingUpdateConnection:Disconnect()
+        DrawingUpdateConnection = nil
+    end
+end
+
+local function CreateDrawingESP(Enabled, ItemInstance, TargetRoot, Settings)
+    Settings = type(Settings) == "table" and Settings or {["MaxDistance"] = 100, ["MinDistance"] = 10, ["Color"] = Color3.new(1,1,1)}
+    if Enabled and GetValue("ESP") then
+        if not DrawingESPObjects[ItemInstance] then
+            DrawingESPObjects[ItemInstance] = {}
+        end
+        local obj = DrawingESPObjects[ItemInstance]
+        if not obj.Box then
+            local suc, box = pcall(Drawing.new, "Square")
+            if suc and box then
+                box.Thickness = 1
+                box.Filled = false
+                box.Visible = false
+                box.Transparency = 0.7
+                obj.Box = box
+            end
+        end
+        if obj.Box then
+            obj.Box.Color = Settings.Color
+        end
+        obj.TargetRoot = TargetRoot
+        obj.Settings = Settings
+    else
+        local obj = DrawingESPObjects[ItemInstance]
+        if obj then
+            if obj.Box then pcall(function() obj.Box:Remove() end); obj.Box = nil end
+            obj.TargetRoot = nil; obj.Settings = nil
+            if not obj.Text then DrawingESPObjects[ItemInstance] = nil end
+        end
+    end
+end
+
+local function CreateDrawingTextESP(Enabled, ItemInstance, TargetRoot, Settings)
+    Settings = type(Settings) == "table" and Settings or {["MinDistance"] = 10, ["Color"] = Color3.new(1,1,1)}
+    if Enabled and GetValue("ShowText") then
+        if not DrawingESPObjects[ItemInstance] then
+            DrawingESPObjects[ItemInstance] = {}
+        end
+        local obj = DrawingESPObjects[ItemInstance]
+        if not obj.Text then
+            local suc, txt = pcall(Drawing.new, "Text")
+            if suc and txt then
+                txt.Size = 14
+                txt.Center = true
+                txt.Outline = true
+                txt.OutlineColor = Color3.new(0, 0, 0)
+                txt.Visible = false
+                obj.Text = txt
+            end
+        end
+        if obj.Text then
+            obj.Text.Color = Settings.Color
+            obj.Text.Text = Settings.Text or "Unknown"
+        end
+        if not obj.TargetRoot then obj.TargetRoot = TargetRoot end
+        obj.TextSettings = Settings
+    else
+        local obj = DrawingESPObjects[ItemInstance]
+        if obj then
+            if obj.Text then pcall(function() obj.Text:Remove() end); obj.Text = nil end
+            obj.TextSettings = nil
+            if not obj.Box then DrawingESPObjects[ItemInstance] = nil end
+        end
+    end
+end
+
+local function StartDrawingESPUpdate()
+    if DrawingUpdateConnection then return end
+    DrawingUpdateConnection = RunService.RenderStepped:Connect(function()
+        local Camera = workspace.CurrentCamera
+        if not Camera then return end
+        if not GetValue("SMode") then
+            CleanupAllDrawingESP()
+            return
+        end
+        for inst, obj in pairs(DrawingESPObjects) do
+            local root = obj.TargetRoot
+            if not root or not root.Parent then
+                if obj.Box then obj.Box.Visible = false end
+                if obj.Text then obj.Text.Visible = false end
+                continue
+            end
+            local worldPos = root.Position + Vector3.new(0, 1, 0)
+            local screenPos, onScreen = Camera:WorldToViewportPoint(worldPos)
+            local distance = (Camera.CFrame.Position - root.Position).Magnitude
+            local settings = obj.Settings or {MaxDistance = 100, MinDistance = 10}
+            local minDist = settings.MinDistance or 10
+            if not onScreen or distance < minDist or distance > 1200 then
+                if obj.Box then obj.Box.Visible = false end
+                if obj.Text then obj.Text.Visible = false end
+                continue
+            end
+            local scaleFactor = 1 / (distance * 0.014)
+            local boxWidth = math.clamp(scaleFactor * 400, 10, 200)
+            local boxHeight = math.clamp(scaleFactor * 600, 15, 350)
+            if obj.Box then
+                obj.Box.Size = Vector2.new(boxWidth, boxHeight)
+                obj.Box.Position = Vector2.new(screenPos.X - boxWidth / 2, screenPos.Y - boxHeight / 2)
+                obj.Box.Visible = true
+            end
+            if obj.Text then
+                obj.Text.Position = Vector2.new(screenPos.X, screenPos.Y - boxHeight / 2 - 16)
+                obj.Text.Visible = true
+            end
+        end
+    end)
+end
+
+-- Wrapper functions: route to Drawing or standard ESP based on S Mode --
+
+local function ESPHighlight(Enabled, ItemInstance, TargetRoot, Settings)
+    if GetValue("SMode") then
+        CreateDynamicHighlight(false, ItemInstance)
+        CreateDrawingESP(Enabled, ItemInstance, TargetRoot, Settings)
+        StartDrawingESPUpdate()
+    else
+        CleanupDrawingESPItem(ItemInstance)
+        CreateDynamicHighlight(Enabled, ItemInstance, TargetRoot, Settings)
+    end
+end
+
+local function ESPText(Enabled, ItemInstance, TargetRoot, Settings)
+    if GetValue("SMode") then
+        CreateText(false, ItemInstance)
+        CreateDrawingTextESP(Enabled, ItemInstance, TargetRoot, Settings)
+        StartDrawingESPUpdate()
+    else
+        local obj = DrawingESPObjects[ItemInstance]
+        if obj and obj.Text then
+            pcall(function() obj.Text:Remove() end)
+            obj.Text = nil; obj.TextSettings = nil
+            if not obj.Box then DrawingESPObjects[ItemInstance] = nil end
+        end
+        CreateText(Enabled, ItemInstance, TargetRoot, Settings)
     end
 end
 
@@ -2760,6 +2939,7 @@ task.spawn(function()
         end
     end
 end)
+Players.PlayerAdded:Connect(HandleCheckForMod)
 Players.PlayerAdded:Connect(function(Player)
     HandleCheckForMod(Player)
     task.delay(2,HandlePrivacySettings,Player)
@@ -2943,11 +3123,11 @@ ThreadManager:Start("FeatureHandler", function()
             if Player and v:FindFirstChildOfClass("Humanoid") and v:FindFirstChildOfClass("Humanoid").Health > 0 and MainUI.Enabled == true then
                 local FolderName = v.Parent.Name
                 local FeatureValue, ColorValue, TargetRoot = GetValue(FolderName.."ESP"), ColorPresets[GetValue(FolderName.."Color")], v:FindFirstChild("HumanoidRootPart")
-                CreateDynamicHighlight(FeatureValue, v, TargetRoot, {MaxDistance = 100,MinDistance = 10,Color = ColorValue })
-                CreateText(FeatureValue, v, TargetRoot, {MinDistance = 25,Text = Player.Name,Color = ColorValue})
+                ESPHighlight(FeatureValue, v, TargetRoot, {MaxDistance = 100,MinDistance = 10,Color = ColorValue })
+                ESPText(FeatureValue, v, TargetRoot, {MinDistance = 25,Text = Player.Name,Color = ColorValue})
             else
-                CreateDynamicHighlight(false, v)
-                CreateText(false, v)
+                ESPHighlight(false, v)
+                ESPText(false, v)
             end
         end)
     end
@@ -2957,8 +3137,8 @@ ThreadManager:Start("FeatureHandler", function()
             local DroppedTools = InGame.Parent:QueryDescendants("Folder > Tool")
             for i,v in table.move(Tools,1,#Tools,#DroppedTools+1,DroppedTools) do
                 local FeatureValue, ColorValue, TargetRoot = GetValue("ItemsESP"), ColorPresets[GetValue("ItemsColor")], v:FindFirstChildWhichIsA("BasePart")
-                CreateDynamicHighlight(FeatureValue, v, TargetRoot, {MaxDistance = 100,MinDistance = 12,Color = ColorValue})
-                CreateText(FeatureValue, v, TargetRoot, {MinDistance = 25,Text = v.Name, Color = ColorValue})
+                ESPHighlight(FeatureValue, v, TargetRoot, {MaxDistance = 100,MinDistance = 12,Color = ColorValue})
+                ESPText(FeatureValue, v, TargetRoot, {MinDistance = 25,Text = v.Name, Color = ColorValue})
                 if v:IsA("Tool") and not LocalCharacter:FindFirstChild(v.Name) and not LocalPlayer:FindFirstChildOfClass("Backpack"):FindFirstChild(v.Name) and not v:GetAttribute("JustDropped") and GetValue("AutoPickup") then
                     local Param = OverlapParams.new()
                     Param.FilterType = Enum.RaycastFilterType.Include
@@ -2973,12 +3153,12 @@ ThreadManager:Start("FeatureHandler", function()
         for i,v in GameMap:QueryDescendants("Model#Generator:has(#Main)") do
             task.spawn(function()
                 if (GetValue("GeneratorsCheck")) == true and v:FindFirstChild("Progress") and v:FindFirstChild("Progress").Value >= 100 then
-                    CreateDynamicHighlight(false, v)
-                    CreateText(false, v)
+                    ESPHighlight(false, v)
+                    ESPText(false, v)
                 elseif v:FindFirstChild("Progress") then
                     local FeatureValue, ColorValue, TargetRoot = GetValue("GeneratorsESP"), ColorPresets[GetValue("GeneratorsColor")], v:FindFirstChild("Main") or v:WaitForChild("Main")
-                    CreateDynamicHighlight(FeatureValue, v, TargetRoot, { MaxDistance = 100,MinDistance = 12,Color = ColorValue})
-                    CreateText(FeatureValue, v, TargetRoot, { MinDistance = 25,Text = v.Name,Color = ColorValue})
+                    ESPHighlight(FeatureValue, v, TargetRoot, { MaxDistance = 100,MinDistance = 12,Color = ColorValue})
+                    ESPText(FeatureValue, v, TargetRoot, { MinDistance = 25,Text = v.Name,Color = ColorValue})
                 end
             end)
         end
@@ -3167,6 +3347,7 @@ if RagdollsFolder then
             for i,v in Ragdoll:QueryDescendants("Highlight[$Dynamic],BillboardGui[$Dynamic]") do
                 v:Destroy()
             end
+            CleanupDrawingESPItem(Ragdoll)
         end
     end)
 end
