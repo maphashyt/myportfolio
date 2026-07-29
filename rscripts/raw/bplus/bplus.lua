@@ -2943,19 +2943,9 @@ local function HandleKiller(Killer)
                     local CustomHitbox = CustomHitboxes[AnimType:lower()] or CustomHitboxes[Killer.Name:lower()]
                     for i = 1,12 do
                         SelfParams.FilterDescendantsInstances = {LocalCharacter:FindFirstChild("QueryHitbox")}
-                        local Part = Instance.new("Part")
-                        Part.Name = "KillerDetectHitbox"
-                        Part.Color = BrickColor.new("Really black").Color
-                        Part.Size =  (CustomHitbox and CustomHitbox["Size"] or Vector3.new(5.2, 6, 5.65)) * 2.2
-                        Part.CFrame = QueryHitbox.CFrame * (CustomHitbox and CustomHitbox["Offset"] or CFrame.new(0,0,-3.5))
-                        Part.CanCollide = false
-                        Part.Anchored = true
-                        Part.CastShadow = false
-                        Part.Material = Enum.Material.ForceField
-                        Part.Transparency = 1
-                        Part.Parent = Hitboxes
-                        Debris:AddItem(Part,0.4)
-                        local Hitbox = workspace:GetPartsInPart(Part,SelfParams)
+                        local HitboxSize = (CustomHitbox and CustomHitbox["Size"] or Vector3.new(5.2, 6, 5.65)) * 2.2
+                        local HitboxCFrame = QueryHitbox.CFrame * (CustomHitbox and CustomHitbox["Offset"] or CFrame.new(0,0,-3.5))
+                        local Hitbox = workspace:GetPartBoundsInBox(HitboxCFrame, HitboxSize, SelfParams)
                         if #Hitbox > 0 then
                             if FireSignal and MainUI:FindFirstChild("AbilityContainer"):FindFirstChild("Block") then
                                 FireSignal(MainUI.AbilityContainer.Block.MouseButton1Click)
@@ -4221,18 +4211,6 @@ end
 
 MainUI.ChildAdded:Connect(function(Child)
     if Child.Name == "AbilityContainer" then
-        if Child:FindFirstChild("Block") and not Child:FindFirstChild("Block"):FindFirstChild("AutoImage") then
-            local AutoImage = Instance.new("ImageLabel")
-            AutoImage.Name = "AutoImage"
-            AutoImage.Interactable = false
-            AutoImage.Parent = Child:FindFirstChild("Block")
-            AutoImage.Image = "rbxassetid://114159864966636"
-            AutoImage.BackgroundTransparency = 1
-            AutoImage.Size = UDim2.fromScale(0.8,0.8)
-            AutoImage.Position = UDim2.fromScale(0.5,0)
-            AutoImage.AnchorPoint = Vector2.new(0.5,0.4)
-            AutoImage.Visible = GetValue("AutoBlock")
-        end
         SideBar:SetAttribute("WasVisible", false)
         UICheck()
     end
