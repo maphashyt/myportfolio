@@ -4042,27 +4042,37 @@ Initializer.Start()
 
 if SidePlusButton:IsA("Frame") then
     task.spawn(function()
-        local Menu = MenuData.SidebarMenus[SidePlusButton.Name]
-        -- Menu is now toggled with the "L" keybind instead of clicking the Plus sidebar button
         local CountingMod = false
+        local ConnectionsSetup = false
+
         UserInputService.InputBegan:Connect(function(Input, GameProcessed)
             if GameProcessed then return end
             if Input.KeyCode ~= Enum.KeyCode.L then return end
+            
+            local MenuName = SidePlusButton.Name or "Plus"
+            local Menu = MenuData.SidebarMenus[MenuName]
             if not Menu then return end
+
             if NewUIVersion then
-                MenuData.SidebarMenus["Plus"]["_sidebar"]["MenusHidden"] = false
-                if not PlusMenu.Visible then
+                if MenuData.SidebarMenus["Plus"] and MenuData.SidebarMenus["Plus"]["_sidebar"] then
+                    MenuData.SidebarMenus["Plus"]["_sidebar"]["MenusHidden"] = false
+                end
+                
+                if not ConnectionsSetup then
+                    ConnectionsSetup = true
                     for i,v in MainUI:GetChildren() do
-                        if v ~= PlusMenu and (v.Name):find("Screen") or v.Name == "Shop" then
+                        if v ~= PlusMenu and ((v.Name):find("Screen") or v.Name == "Shop") then
                             local ButtonName = v.Name:gsub("Screen","")
                             local Button = SideBar:FindFirstChild(ButtonName,true)
                             if not Button and ButtonName ~= "Mod" then continue end
+                            
                             if (MenuData.SidebarMenus[ButtonName] and not MenuData.SidebarMenus[ButtonName]["Checked"]) or (ButtonName == "Mod" and not CountingMod) then
                                 if ButtonName == "Mod" then
                                     CountingMod = true
                                 else
                                     MenuData.SidebarMenus[ButtonName]["Checked"] = true
                                 end
+                                
                                 if Button then
                                     Button.Button.MouseButton1Click:Connect(function()
                                         if PlusMenu.Visible and MenuData.TogglingMenus == nil then
@@ -4071,9 +4081,9 @@ if SidePlusButton:IsA("Frame") then
                                     end)
                                 elseif ButtonName == "Mod" and PlayerGui.TopbarStandard.Holders.Left:FindFirstChild("Widget") then
                                     local TopMod
-                                    for i,v in PlayerGui.TopbarStandard.Holders.Left:GetChildren() do
-                                        if v:FindFirstChildWhichIsA("TextLabel",true) and v:FindFirstChildWhichIsA("TextLabel",true).Text == "Command Panel" then
-                                            TopMod = v
+                                    for i,TopV in PlayerGui.TopbarStandard.Holders.Left:GetChildren() do
+                                        if TopV:FindFirstChildWhichIsA("TextLabel",true) and TopV:FindFirstChildWhichIsA("TextLabel",true).Text == "Command Panel" then
+                                            TopMod = TopV
                                             break
                                         end
                                     end
@@ -4089,28 +4099,31 @@ if SidePlusButton:IsA("Frame") then
                         end
                     end
                 end
+                
                 if MenuData.TogglingMenus == nil then
                     Menu:ToggleMenu()
                 end
             else
-                if not PlusMenu.Visible then
+                if not ConnectionsSetup then
+                    ConnectionsSetup = true
                     for i,v in MainUI:GetChildren() do
                         if v ~= PlusMenu and (v.Name):find("Screen") then
                             local ButtonName = v.Name:gsub("Screen","")
                             local Button = Buttons:FindFirstChild(ButtonName) or (SideBar:FindFirstChild("Bottombar") and SideBar.Bottombar.Buttons:FindFirstChild(ButtonName)) or nil
                             if not Button and ButtonName ~= "Mod" then continue end
+                            
                             local Event = v:FindFirstChildOfClass("BindableEvent")
                             if MenuData.SidebarMenus[ButtonName] == nil then
                                 if Button then
                                     Button.Button.MouseButton1Click:Connect(function()
                                         if PlusMenu.Visible and MenuData.TogglingMenus == nil then
-                                            Menu:ToggleMenu()
+                                            MenuData.ToggleMenu(Menu, false)
                                         end
                                     end)
                                 elseif v.Name == "ModScreen" and PlayerGui.TopbarStandard.Holders.Left:FindFirstChild("Widget") then
                                     PlayerGui.TopbarStandard.Holders.Left.Widget.IconButton.Menu.IconSpot.ClickRegion.MouseButton1Click:Connect(function()
                                         if PlusMenu.Visible and MenuData.TogglingMenus == nil then
-                                            Menu:ToggleMenu()
+                                            MenuData.ToggleMenu(Menu, false)
                                         end
                                     end)
                                 end
@@ -4124,8 +4137,9 @@ if SidePlusButton:IsA("Frame") then
                         end
                     end
                 end
+                
                 if MenuData.TogglingMenus == nil then
-                    Menu:ToggleMenu()
+                    MenuData.ToggleMenu(Menu, false)
                 end
             end
         end)
