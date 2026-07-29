@@ -1,4 +1,4 @@
--- Forsaken bPlus Made by NaikoScripts, edited + features by Maphash --
+-- Forsaken bPlus Made by Maphash --
 
 if workspace.DistributedGameTime < 4 then
 	task.wait(4 - workspace.DistributedGameTime)
@@ -1187,6 +1187,7 @@ PlusFolderSettings.Parent = PlayerData
 
 SidePlusButton.Name = "Plus"
 SidePlusButton.Parent = Buttons
+SidePlusButton.Visible = false -- Hidden: menu is opened with L keybind instead
 SidePlusButton.LayoutOrder = MainButton.Name == "Settings" and MainButton.LayoutOrder - 1 or MainButton.LayoutOrder + 1
 if NewUIVersion then
     PlusButton:FindFirstChild("Icon").ImageColor3 = Color3.fromRGB(0, 170, 127)
@@ -2602,20 +2603,7 @@ else
     DefaultData("AccountType.txt","{}")
 end
 
-if UserType < 3 then
-    task.spawn(function()
-        Arrow.Visible = true
-        local MovingTween = TweenService:Create(Arrow, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Position = UDim2.fromScale(1.4, 0.5)})
-        MovingTween:Play()
-        SidePlusButton.Button.MouseEnter:Wait()
-        local DisappearTween = TweenService:Create(Arrow, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.fromScale(1.6, 0.5),Size = UDim2.fromScale(0.2, 0.2),ImageTransparency = 1})
-        MovingTween:Pause()
-        MovingTween:Cancel()
-        DisappearTween:Play()
-        DisappearTween.Completed:Wait()
-        Arrow.Visible = false
-    end)
-end
+-- Arrow tutorial removed (sidebar button is hidden, menu opens with L keybind)
 
 local TableData = HttpService:JSONDecode(ReturnData("Data.txt", true))
 
@@ -4038,55 +4026,7 @@ if SidePlusButton:IsA("Frame") then
             end
         end)
     end)
-    if NewUIVersion then
-        local OriginalSize = SidePlusButton.Size
-        SidePlusButton.MouseEnter:Connect(function()
-            TweenService:Create(SidePlusButton, BaseTweenInfo, {
-                ["Size"] = UDim2.fromScale(OriginalSize.X.Scale * 1.1, OriginalSize.Y.Scale * 1.13) --UDim2.fromScale(0.69, 0.09)
-            }):Play()
-            PlaySound("hover")
-        end)
-        SidePlusButton.MouseLeave:Connect(function()
-            TweenService:Create(SidePlusButton, BaseTweenInfo, {
-                ["Size"] = OriginalSize --UDim2.fromScale(0.684, 0.073)
-            }):Play()
-            PlaySound("hoverEnd")
-        end)
-    else
-        local IsBottomBar = SidePlusButton.Parent.Parent.Name == "Bottombar"
-        local PulloutHolder = SidePlusButton.PulloutHolder
-        PulloutHolder.Parent = IsBottomBar and (MenuData.Sidebars.Bottombar.Pullouts or SidePlusButton) or SidePlusButton
-        local PulloutFrame = PulloutHolder.PulloutFrame
-        PulloutFrame.Title.Text = SidePlusButton.Name
-        SidePlusButton.MouseEnter:Connect(function()
-            if SidePlusButton.Button.ImageTransparency <= 0.1 then
-                TweenService:Create(SidePlusButton, BaseTweenInfo, {
-                    ["Size"] = UDim2.fromScale(1.05, IsBottomBar and 1.15 or 0.25)
-                }):Play()
-                if IsBottomBar then
-                    TweenService:Create(PulloutHolder, BaseTweenInfo, {["Position"] = UDim2.fromScale(0.65, 0.85),["Size"] = UDim2.fromScale(0.35, 0.75)}):Play()
-                    TweenService:Create(PulloutFrame.Display, BaseTweenInfo, {["ImageTransparency"] = 0}):Play()
-                    TweenService:Create(PulloutFrame.Title, BaseTweenInfo, {["TextTransparency"] = 0}):Play()
-                else
-                    TweenService:Create(PulloutFrame, BaseTweenInfo, {["Position"] = UDim2.new(0.225, PulloutFrame.Title.AbsoluteSize.X ^ 1.03, 0.5, 0)}):Play()
-                end
-                PlaySound("hover")
-            end
-        end)
-        SidePlusButton.MouseLeave:Connect(function()
-            TweenService:Create(SidePlusButton, BaseTweenInfo, {["Size"] = UDim2.fromScale(1, IsBottomBar and 1 or 0.2)}):Play()
-            if IsBottomBar then
-                TweenService:Create(PulloutHolder, BaseTweenInfo, {["Position"] = UDim2.fromScale(0.65, 1),["Size"] = UDim2.fromScale(0.15, 0.45)}):Play()
-                TweenService:Create(PulloutFrame.Display, BaseTweenInfo, {["ImageTransparency"] = 1}):Play()
-                TweenService:Create(PulloutFrame.Title, BaseTweenInfo, {["TextTransparency"] = 1}):Play()
-            else
-                TweenService:Create(PulloutFrame, BaseTweenInfo, {["Position"] = UDim2.fromScale(0, 0.5)}):Play()
-            end
-            if SidePlusButton.Button.ImageTransparency <= 0.1 then
-                PlaySound("hoverEnd")
-            end
-        end)
-    end
+    -- Hover effects removed (sidebar button is hidden)
 end
 
 local function UICheck()
@@ -4153,7 +4093,7 @@ local function UICheck()
     for i,v in SideBar:QueryDescendants(`#Bottom > Frame, #Money , #Bottombar , #{Buttons} > Frame {((not NewUIVersion) and ":not(#Credits)" or "")} :not(#TesterUi)`) do
         v.Visible = Status
     end
-    SidePlusButton.Visible = true
+    SidePlusButton.Visible = false -- Keep hidden, menu opens with L keybind
     if not Status then
         RoundEvent:Fire("Start")
     else
