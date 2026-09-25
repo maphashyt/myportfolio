@@ -1,271 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maphash - Portfolio</title>
-    <style>
-        /* General Styles and British English 'colours' */
-        :root {
-            --bg-color: #0f0c1b;
-            --text-main: #ffffff;
-            --text-muted: #a0a0a0;
-            --accent-purple: #7b42f6;
-            --card-bg: #161616;
-            --card-border: #2a2a2a;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        html {
-            scroll-behavior: smooth; /* Enables smooth scrolling for navigation */
-        }
-
-        body {
-            background-color: var(--bg-color);
-            background-image: radial-gradient(circle at 20% 50%, rgba(67, 28, 126, 0.4) 0%, transparent 50%),
-                              radial-gradient(circle at 80% 90%, rgba(67, 28, 126, 0.3) 0%, transparent 50%);
-            color: var(--text-main);
-            min-height: 100vh;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        /* Navigation Header */
-        header {
-            display: flex;
-            align-items: center;
-            padding: 20px 50px;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 100;
-        }
-
-        .logo img {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            margin-right: 30px;
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-        }
-
-        nav a {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            transition: color 0.3s ease;
-        }
-
-        nav a:hover {
-            color: var(--text-main);
-        }
-
-        /* Hero Section (Home) */
-        #home {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .hero-title {
-            font-size: 4rem;
-            letter-spacing: 15px; /* Spaces out the letters */
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-
-        .hero-subtitle {
-            color: var(--text-muted);
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-        }
-
-        .btn-main {
-            background-color: var(--accent-purple);
-            color: white;
-            padding: 15px 60px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: opacity 0.3s ease;
-            display: inline-block;
-        }
-
-        .btn-main:hover {
-            opacity: 0.85;
-        }
-
-        /* Projects Section */
-        #projects {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 100px 20px 50px;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .section-header h2 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .section-header p {
-            color: var(--text-muted);
-        }
-
-        /* Cards Layout */
-        .cards-container {
-            display: flex;
-            gap: 20px;
-            max-width: 1100px;
-            width: 100%;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 30px;
-            width: 330px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 250px;
-        }
-
-        .card h3 {
-            font-size: 1.4rem;
-            margin-bottom: 15px;
-        }
-
-        .card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin-bottom: 30px;
-        }
-
-        /* Card Buttons */
-        .card-btn {
-            display: block;
-            text-align: center;
-            padding: 12px 0;
-            border-radius: 8px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn-dark {
-            background-color: #222;
-            color: var(--text-main);
-            border: 1px solid #333;
-        }
-
-        .btn-dark:hover {
-            background-color: #333;
-        }
-
-        /* Highlighted Card (Sumersufifal) */
-        .card.highlight {
-            border: 2px solid var(--accent-purple);
-            box-shadow: 0 0 30px rgba(123, 66, 246, 0.15);
-        }
-
-        .card.highlight h3 {
-            color: var(--accent-purple);
-        }
-
-        .btn-light {
-            background-color: white;
-            color: black;
-        }
-
-        .btn-light:hover {
-            background-color: #e0e0e0;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maphash | Portfolio</title>
+  <meta name="description" content="Portfolio of an After Effects Specialist and Systems Programmer (Python, Java, C++) with a focus on progressive advocacy and high-impact visual computing." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,700;1,400&family=Cinzel:wght@500;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div class="grain-overlay" aria-hidden="true"></div>
+  <div class="grid-backdrop" aria-hidden="true"></div>
 
-    <header>
-        <div class="logo">
-            <a href="#home">
-                <img src="https://lh3.googleusercontent.com/d/1-zPlk_kqW8NMyxedyVFrrFgW7LfPiWOS" alt="Maphash Logo">
-            </a>
+  <header class="site-header">
+    <nav class="nav-container">
+      <a href="#hero" class="brand-logo">
+        <span class="mono-bracket">[</span>Maphash<span class="mono-bracket">]</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#projects">Projects</a></li>
+      </ul>
+      <button class="mobile-nav-toggle" aria-label="Toggle Navigation">
+        <span></span>
+        <span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="hero" class="hero-section">
+      <div class="hero-container">
+        <div class="hero-tagline-wrap">
+          <span class="badge mono">AFTER EFFECTS &bull; PROGRAMMER</span>
         </div>
-        <nav>
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#projects">Projects</a></li>
-                <li><a href="https://www.youtube.com/@maphash" target="_blank">My Channel</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <section id="home">
-        <h1 class="hero-title">M a p h a s h</h1>
-        <p class="hero-subtitle">After Effects Expert, Java, python and JS Programmer</p>
-        <a href="#projects" class="btn-main">My stuff</a>
+        <h1 class="hero-headline">
+          About Me
+        </h1>
+        <p class="hero-description">
+          Hi, I'm Maphash. My main interest and hobby is <strong>Programming</strong>. I mainly code in <strong>C++</strong> as I mainly build windows programs, 
+		  tho I sometimes use <strong>Python</strong>. I also code in <strong>Java</strong>, mainly Minecraft mods with <strong>Fabric Loom</strong>. I mainly modify existing mechanics, blocks and add commands rather than add custom updates or link modpacks. I also have done multiple <strong>Map Animations</strong> Which are public on my <strong>Youtube channel</strong>.
+        </p>
+      </div>
     </section>
 
-    <section id="projects">
-        <div class="section-header">
-            <h2>My Projects</h2>
-            <p>My Projects that I'm glad to share</p>
+    <section id="projects" class="projects-section section-pad">
+      <div class="container">
+        <div class="projects-grid single-project-grid" id="projectsContainer">
+          <article class="project-card featured-project-card" data-category="motion">
+            <div class="project-header">
+              <span class="badge mono">AFTER EFFECTS &bull; PROGRAMMING</span>
+            </div>
+            <h3 class="project-title">Current project</h3>
+            <p class="project-desc">
+              I don't have any current projects, all of them are retired currently for private and school reasons
+            </p>
+          </article>
         </div>
-
-        <div class="cards-container">
-            
-            <div class="card">
-                <div>
-                    <h3>My Channel</h3>
-                    <p>I make my geography/history related videos here when i'm bored :)</p>
-                </div>
-                <a href="https://www.youtube.com/@maphash" target="_blank" class="card-btn btn-dark">Visit</a>
-            </div>
-
-            <div class="card highlight">
-                <div>
-                    <h3>Sumersufifal</h3>
-                    <p>My biggest project so far, it's a yearly event that I work on behind the scenes</p>
-                </div>
-                <a href="https://sumersufifal.pl" target="_blank" class="card-btn btn-light">Website</a>
-            </div>
-
-            <div class="card">
-                <div>
-                    <h3>MzUtils</h3>
-                    <p>Probably my favourite one, They're just little programs for my favourite roblox game</p>
-                </div>
-                <a href="https://mzutils.maphash.pl" target="_blank" class="card-btn btn-dark">Website</a>
-            </div>
-
-        </div>
+      </div>
     </section>
+  </main>
 
+  <footer class="site-footer">
+    <div class="container footer-content mono">
+      <div>
+        &copy; <span id="currentYear">2026</span> Maphash
+      </div>
+      <div class="footer-links">
+        <a href="#hero">Back to Top &uarr;</a>
+      </div>
+    </div>
+  </footer>
+
+  <div id="projectModal" class="modal" aria-hidden="true" role="dialog">
+    <div class="modal-overlay" onclick="closeProjectModal()"></div>
+    <div class="modal-card">
+      <button class="modal-close" onclick="closeProjectModal()" aria-label="Close modal">&times;</button>
+      <div id="modalContent" class="modal-inner"></div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
 </body>
 </html>
